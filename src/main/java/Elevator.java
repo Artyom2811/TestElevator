@@ -5,7 +5,8 @@ import java.util.List;
 public class Elevator {
 
     int height = 0;
-    List<СommandFromPanelFloor> listPanelElevator = new LinkedList<СommandFromPanelFloor>();
+    boolean stopButton = false;
+    List<СommandForElevator> listPanelElevator = new LinkedList<СommandForElevator>();
 
     public void start() {
         while (true) {
@@ -27,51 +28,65 @@ public class Elevator {
         list.add(startFloor);
         list.add(finishFloor);
         listPanelElevator.remove(0);
-        // TODO: 22.09.2019 Довавить проверку и добавление попутчиков 
+        searchForTravelCompanions(startFloor, finishFloor, list);
         return list;
     }
 
     private void move(ArrayList<Integer> route) {
         for (Integer el : route) {
+            System.err.println("Лифт едет на " + el + " этаж");
             int needFloor = (el - 1) * 4;
             if (this.height > el) {
-                for (int i = this.height; i != needFloor; i--) {
+                if (!stopButton) {
+                    for (int i = this.height; i != needFloor; i--) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        this.height--;
+                    }
+                }
+            } else if (!stopButton) {
+                for (int i = this.height; i != needFloor; i++) {
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    this.height--;
-                    System.err.println("Лифт проехал 1м вниз");
+                    this.height++;
                 }
-
-            } else for (int i = this.height; i != needFloor; i++) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                this.height++;
-                System.err.println("Лифт проехал 1м вверх");
             }
             System.err.println("Лифт на " + el + " этаже");
         }
+    }
 
-        //Страрй вариант
-//        if (this.height > height) {
-//            for (int i = this.height; i != height; i--) {
-//
-//            }
-//        } else for (int i = this.height; i != height; i++) {
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            this.height++;
-//            System.err.println("Лифт проехал 1м");
-//        }
-//        System.err.println("Лифт прибыл на " + height / 4 + " этаж");
-//        listPanelElevator.remove(0);
+    private void searchForTravelCompanions(int startFloor, int finishFloor, ArrayList<Integer> list) {
+        //Если лифт едет вниз
+        if (startFloor > finishFloor) {
+            for (СommandForElevator el : listPanelElevator) {
+                if (el.numberFloorPosition <= startFloor && el.numberFloorRequired >= finishFloor && el.direction.equals("DOWN")) {
+                    list.add(finishFloor);
+                    listPanelElevator.remove(el);
+                }
+            }
+            //Если лифт едет вверх
+        } else {
+            for (СommandForElevator el : listPanelElevator) {
+                if (el.numberFloorPosition >= startFloor && el.numberFloorRequired <= finishFloor && el.direction.equals("UP")) {
+                    list.add(finishFloor);
+                    listPanelElevator.remove(el);
+                }
+            }
+        }
+
+    }
+
+    private void pressStopButton() {
+        if (stopButton) {
+            stopButton = false;
+        } else {
+            stopButton = true;
+        }
     }
 }
