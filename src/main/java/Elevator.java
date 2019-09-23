@@ -5,15 +5,15 @@ import java.util.List;
 public class Elevator {
 
     int height = 0;
+    int numberOfActions = 0;
     boolean stopButton = false;
-    List<СommandForElevator> listPanelElevator = new LinkedList<СommandForElevator>();
+    List<СommandForElevator> listPanelElevator = new LinkedList<>();
 
-    public void start() {
-        while (true) {
-            if (listPanelElevator.size() != 0) {
-                execution();
-            }
+    public int[] start() {
+        while (listPanelElevator.size() != 0) {
+            execution();
         }
+        return new int[]{height, numberOfActions};
     }
 
     private void execution() {
@@ -36,30 +36,37 @@ public class Elevator {
         for (Integer el : route) {
             System.err.println("Лифт едет на " + el + " этаж");
             int needFloor = (el - 1) * 4;
-            if (this.height > el) {
-                if (!stopButton) {
+            try {
+                if (this.height > el) {
                     for (int i = this.height; i != needFloor; i--) {
-                        try {
+                        while (stopButton) {
+                            System.err.println("Лифт стоит по кнопке стоп");
+                            numberOfActions++;
                             Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
                         }
-                        this.height--;
-                    }
-                }
-            } else if (!stopButton) {
-                for (int i = this.height; i != needFloor; i++) {
-                    try {
                         Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        this.height--;
+                        numberOfActions++;
                     }
-                    this.height++;
+
+                } else {
+                    for (int i = this.height; i != needFloor; i++) {
+                        while (stopButton) {
+                            numberOfActions++;
+                            Thread.sleep(1000);
+                        }
+                        Thread.sleep(1000);
+                        this.height++;
+                        numberOfActions++;
+                    }
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
             System.err.println("Лифт на " + el + " этаже");
         }
     }
+
 
     private void searchForTravelCompanions(int startFloor, int finishFloor, ArrayList<Integer> list) {
         //Если лифт едет вниз
